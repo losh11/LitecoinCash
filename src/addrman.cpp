@@ -241,12 +241,8 @@ void CAddrMan::Good_(const CService& addr, int64_t nTime)
 
 bool CAddrMan::Add_(const CAddress& addr, const CNetAddr& source, int64_t nTimePenalty)
 {
-    LogPrint(BCLog::ADDRMAN, "Trying %s...\n", addr.ToString());
-        
-    if (!addr.IsRoutable()) {
-        LogPrint(BCLog::ADDRMAN, "Dropping %s (isn't routable)\n", addr.ToString());
+    if (!addr.IsRoutable())
         return false;
-    }
 
     bool fNew = false;
     int nId;
@@ -268,31 +264,23 @@ bool CAddrMan::Add_(const CAddress& addr, const CNetAddr& source, int64_t nTimeP
         pinfo->nServices = ServiceFlags(pinfo->nServices | addr.nServices);
 
         // do not update if no new information is present
-        if (!addr.nTime || (pinfo->nTime && addr.nTime <= pinfo->nTime)) {
-            LogPrint(BCLog::ADDRMAN, "Dropping %s (no new info)\n", addr.ToString());
+        if (!addr.nTime || (pinfo->nTime && addr.nTime <= pinfo->nTime))
             return false;
-        }
 
         // do not update if the entry was already in the "tried" table
-        if (pinfo->fInTried) {
-            LogPrint(BCLog::ADDRMAN, "Dropping %s (already tried)\n", addr.ToString());
+        if (pinfo->fInTried)
             return false;
-        }
 
         // do not update if the max reference count is reached
-        if (pinfo->nRefCount == ADDRMAN_NEW_BUCKETS_PER_ADDRESS) {
-            LogPrint(BCLog::ADDRMAN, "Dropping %s (max refs reached)\n", addr.ToString());
+        if (pinfo->nRefCount == ADDRMAN_NEW_BUCKETS_PER_ADDRESS)
             return false;
-        }
 
         // stochastic test: previous nRefCount == N: 2^N times harder to increase it
         int nFactor = 1;
         for (int n = 0; n < pinfo->nRefCount; n++)
             nFactor *= 2;
-        if (nFactor > 1 && (RandomInt(nFactor) != 0)) {
-            LogPrint(BCLog::ADDRMAN, "Dropping %s (stochastic test fail)\n", addr.ToString());
+        if (nFactor > 1 && (RandomInt(nFactor) != 0))
             return false;
-        }
     } else {
         pinfo = Create(addr, source, &nId);
         pinfo->nTime = std::max((int64_t)0, (int64_t)pinfo->nTime - nTimePenalty);
@@ -321,7 +309,6 @@ bool CAddrMan::Add_(const CAddress& addr, const CNetAddr& source, int64_t nTimeP
             }
         }
     }
-    LogPrint(BCLog::ADDRMAN, "OK for %s\n", addr.ToString());
     return fNew;
 }
 

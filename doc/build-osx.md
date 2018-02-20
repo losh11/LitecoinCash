@@ -22,23 +22,19 @@ If you want to build the disk image with `make deploy` (.dmg / optional), you ne
 
     brew install librsvg
 
-If you want to build with ZeroMQ support
-    
-    brew install zeromq
-
 NOTE: Building with Qt4 is still supported, however, could result in a broken UI. Building with Qt5 is recommended.
 
-Build LitecoinCash Core
+Build Litecoin Core
 ------------------------
 
-1. Clone the litecoincash source code and cd into `litecoincash`
+1. Clone the litecoin source code and cd into `litecoin`
 
-        git clone https://github.com/litecoincash-project/litecoincash
-        cd litecoincash
+        git clone https://github.com/litecoin-project/litecoin
+        cd litecoin
 
-2.  Build litecoincash-core:
+2.  Build litecoin-core:
 
-    Configure and build the headless litecoincash binaries as well as the GUI (if Qt is found).
+    Configure and build the headless litecoin binaries as well as the GUI (if Qt is found).
 
     You can disable the GUI build by passing `--without-gui` to configure.
 
@@ -57,37 +53,37 @@ Build LitecoinCash Core
 Running
 -------
 
-LitecoinCash Core is now available at `./src/litecoincashd`
+Litecoin Core is now available at `./src/litecoind`
 
 Before running, it's recommended you create an RPC configuration file.
 
-    echo -e "rpcuser=litecoincashrpc\nrpcpassword=$(xxd -l 16 -p /dev/urandom)" > "/Users/${USER}/Library/Application Support/LitecoinCash/litecoincash.conf"
+    echo -e "rpcuser=litecoinrpc\nrpcpassword=$(xxd -l 16 -p /dev/urandom)" > "/Users/${USER}/Library/Application Support/Litecoin/litecoin.conf"
 
-    chmod 600 "/Users/${USER}/Library/Application Support/LitecoinCash/litecoincash.conf"
+    chmod 600 "/Users/${USER}/Library/Application Support/Litecoin/litecoin.conf"
 
-The first time you run litecoincashd, it will start downloading the blockchain. This process could take several hours.
+The first time you run litecoind, it will start downloading the blockchain. This process could take several hours.
 
 You can monitor the download process by looking at the debug.log file:
 
-    tail -f $HOME/Library/Application\ Support/LitecoinCash/debug.log
+    tail -f $HOME/Library/Application\ Support/Litecoin/debug.log
 
 Other commands:
 -------
 
-    ./src/litecoincashd -daemon # Starts the litecoincash daemon.
-    ./src/litecoincash-cli --help # Outputs a list of command-line options.
-    ./src/litecoincash-cli help # Outputs a list of RPC commands when the daemon is running.
+    ./src/litecoind -daemon # Starts the litecoin daemon.
+    ./src/litecoin-cli --help # Outputs a list of command-line options.
+    ./src/litecoin-cli help # Outputs a list of RPC commands when the daemon is running.
 
 Using Qt Creator as IDE
 ------------------------
-You can use Qt Creator as an IDE, for litecoincash development.
+You can use Qt Creator as an IDE, for litecoin development.
 Download and install the community edition of [Qt Creator](https://www.qt.io/download/).
 Uncheck everything except Qt Creator during the installation process.
 
 1. Make sure you installed everything through Homebrew mentioned above
 2. Do a proper ./configure --enable-debug
 3. In Qt Creator do "New Project" -> Import Project -> Import Existing Project
-4. Enter "litecoincash-qt" as project name, enter src/qt as location
+4. Enter "litecoin-qt" as project name, enter src/qt as location
 5. Leave the file selection as it is
 6. Confirm the "summary page"
 7. In the "Projects" tab select "Manage Kits..."

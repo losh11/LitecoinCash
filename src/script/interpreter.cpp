@@ -185,25 +185,11 @@ bool static IsDefinedHashtypeSignature(const valtype &vchSig) {
     if (vchSig.size() == 0) {
         return false;
     }
-    unsigned char nHashType = vchSig[vchSig.size() - 1] & (~(SIGHASH_ANYONECANPAY | SIGHASH_FORKID));   // LitecoinCash: Use SIGHASH_FORKID
+    unsigned char nHashType = vchSig[vchSig.size() - 1] & (~(SIGHASH_ANYONECANPAY));
     if (nHashType < SIGHASH_ALL || nHashType > SIGHASH_SINGLE)
         return false;
 
     return true;
-}
-
-// LitecoinCash: Drop the signature in scripts when SIGHASH_FORKID is not used
-static uint32_t GetHashType(const valtype &vchSig) {
-    if (vchSig.size() == 0)
-        return 0;
-
-    return vchSig[vchSig.size() - 1];
-}
-
-static void CleanupScriptCode(CScript &scriptCode, const std::vector<uint8_t> &vchSig, uint32_t flags) {
-    uint32_t nHashType = GetHashType(vchSig);
-    if (!(flags & SCRIPT_ENABLE_SIGHASH_FORKID) || !(nHashType & SIGHASH_FORKID))
-        scriptCode.FindAndDelete(CScript(vchSig));
 }
 
 bool CheckSignatureEncoding(const std::vector<unsigned char> &vchSig, unsigned int flags, ScriptError* serror) {
@@ -217,19 +203,8 @@ bool CheckSignatureEncoding(const std::vector<unsigned char> &vchSig, unsigned i
     } else if ((flags & SCRIPT_VERIFY_LOW_S) != 0 && !IsLowDERSignature(vchSig, serror)) {
         // serror is set
         return false;
-    // LitecoinCash: Enforce fork ID checking
-    } else if ((flags & SCRIPT_VERIFY_STRICTENC) != 0) {
-        if (!IsDefinedHashtypeSignature(vchSig)) {
-            return set_error(serror, SCRIPT_ERR_SIG_HASHTYPE);
-        }
-        bool usesForkId = GetHashType(vchSig) & SIGHASH_FORKID;
-        bool forkIdEnabled = flags & SCRIPT_ENABLE_SIGHASH_FORKID;
-        if (!forkIdEnabled && usesForkId) {
-            return set_error(serror, SCRIPT_ERR_ILLEGAL_FORKID);
-        }
-        if (forkIdEnabled && !usesForkId) {
-            return set_error(serror, SCRIPT_ERR_MUST_USE_FORKID);
-        }
+    } else if ((flags & SCRIPT_VERIFY_STRICTENC) != 0 && !IsDefinedHashtypeSignature(vchSig)) {
+        return set_error(serror, SCRIPT_ERR_SIG_HASHTYPE);
     }
     return true;
 }
@@ -915,8 +890,7 @@ bool EvalScript(std::vector<std::vector<unsigned char> >& stack, const CScript& 
 
                     // Drop the signature in pre-segwit scripts but not segwit scripts
                     if (sigversion == SIGVERSION_BASE) {
-                        // LitecoinCash: Check fork ID before calling FindAndDelete
-                        CleanupScriptCode(scriptCode, vchSig, flags);
+                        scriptCode.FindAndDelete(CScript(vchSig));
                     }
 
                     if (!CheckSignatureEncoding(vchSig, flags, serror) || !CheckPubKeyEncoding(vchPubKey, flags, sigversion, serror)) {
@@ -980,8 +954,7 @@ bool EvalScript(std::vector<std::vector<unsigned char> >& stack, const CScript& 
                     {
                         valtype& vchSig = stacktop(-isig-k);
                         if (sigversion == SIGVERSION_BASE) {
-                            // LitecoinCash: Check fork ID before calling FindAndDelete
-                            CleanupScriptCode(scriptCode, vchSig, flags);
+                            scriptCode.FindAndDelete(CScript(vchSig));
                         }
                     }
 
@@ -1244,13 +1217,6 @@ uint256 SignatureHash(const CScript& scriptCode, const CTransaction& txTo, unsig
         // Sighash type
         ss << nHashType;
 
-        /*
-        // LitecoinCash: Append some extra data to introduce more inter-chain sig variance.
-        if (nHashType & SIGHASH_FORKID){
-            ss << std::string("LCC");
-        }
-        */
-        
         return ss.GetHash();
     }
 
